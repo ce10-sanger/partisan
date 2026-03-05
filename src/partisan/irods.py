@@ -46,6 +46,7 @@ from typing import (
     Generator,
     Iterable,
     Type,
+    Callable,
 )
 
 import dateutil.parser
@@ -2569,7 +2570,7 @@ class DataObject(RodsItem):
         self,
         local_path: Path | str,
         verify_checksum=False,
-        local_checksum=None,
+        local_checksum=Callable[[Path], str] | os.PathLike | str | None,
         compare_checksums=False,
         fill=False,
         force=True,
@@ -2674,7 +2675,7 @@ class DataObject(RodsItem):
         local_path: Path | str,
         calculate_checksum=False,
         verify_checksum=False,
-        local_checksum=None,
+        local_checksum=Callable[[Path], str] | os.PathLike | str | None,
         compare_checksums=False,
         fill=False,
         force=True,
@@ -3931,7 +3932,9 @@ def _calculate_file_checksum(path: Path | str) -> str:
     return h.hexdigest()
 
 
-def _local_file_checksum(path: Path | str, checksum_source) -> str:
+def _local_file_checksum(
+    path: Path | str, checksum_source: Callable[[Path], str] | os.PathLike | str | None
+) -> str:
     if checksum_source is None:
         checksum = _calculate_file_checksum(path)
         log.info(
